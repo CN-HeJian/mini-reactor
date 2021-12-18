@@ -18,15 +18,18 @@
 2)使用的时候需要判断是不是在当前线程
 //事件循环是不可拷贝的
 */
+
 #ifndef EVENT_LOOP_H
 #define EVENT_LOOP_H
 
 #include <pthread.h>
 #include <assert.h>
 #include <iostream>
-#include <poll.h>
+#include "poller.h"
 #include <unistd.h>  
 
+class Channel;
+class Poller;
 
 class EventLoop{
 public:
@@ -35,9 +38,15 @@ public:
 
     //主循环事件
     void loop();
-    
+
+    //退出循环
+    void setQuit();
+
     //假设当前在所属线程
     void assertInLoopThread();
+
+    //
+    void updateChannel(Channel* channel);
 
 private:
     //判断自身是否在所属线程里面
@@ -51,6 +60,14 @@ private:
 
     //所属线程id
     const pid_t threadId; 
+
+    //退出标志位
+    bool quit; /* atomic */
+
+    Poller* poller;
+
+    typedef std::vector<Channel*> ChannelList;
+    ChannelList activeChannels;
 
     //返回线程专属的loopEvent,如果不是io线程，则返回的指针可能是空指针
     EventLoop* getEventLoopOfCurThread();

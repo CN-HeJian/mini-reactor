@@ -1,23 +1,39 @@
 #include <iostream>
 #include "eventLoop.h"
 #include <pthread.h>
+#include <sys/timerfd.h>
+#include "channel.h"
+#include <cstring>
+#include <string.h>
 
 using namespace std;
 
-void* threadFunc(void* arg){
-    EventLoop loop;
-    loop.loop();
-    return nullptr;
+EventLoop* g_loop;
+
+void timeout(){
+    printf("Timeout!\n");
+    g_loop->setQuit();
 }
 
 int main(){
     EventLoop loop;
 
-    pthread_t p1;
+    g_loop= &loop;
 
-    pthread_create(&p1,nullptr,threadFunc,nullptr);
+    int timerfd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+    Channel channel(&loop,timerfd);
+    channel.setReadCallBack(timeout);
+    channel.enableReadEvent();
     
+    struct itimerspec howlong;
+    //bzero(&howlong, sizeof howlong);
+    //memset(&howlong, sizeof howlong,0);
+    bzero(&howlong, sizeof howlong);
+    howlong.it_value.tv_sec = 5;
+    timerfd_settime(timerfd, 0, &howlong, NULL);
+
     loop.loop();
 
-    pthread_exit(nullptr);
+    close(timerfd);
+    //pthread_exit(nullptr);
 }

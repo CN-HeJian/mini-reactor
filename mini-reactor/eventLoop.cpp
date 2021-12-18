@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-
 #include "eventLoop.h"
+
 
 __thread EventLoop* t_loopInThisThread=0;
 
 EventLoop::EventLoop()
     :looping(false),
-    threadId(getpid())
+    threadId(getpid()),
+    quit(false),
+    poller(new Poller(this))
 {
     if(t_loopInThisThread){
         std::cout<<"this thread already exit eventloop"<<std::endl;
@@ -43,8 +45,20 @@ void EventLoop::loop(){
     assert(!looping);
     assertInLoopThread();
     looping = true;
+    quit  = false;
 
-    poll(nullptr,0,5*1000);
+    while(!quit){
+        printf("loop\n");
+        activeChannels.clear();
+        poller->poll(2000, &activeChannels);
+        for (ChannelList::iterator it = activeChannels.begin();it != activeChannels.end(); ++it)
+        {
+            printf("findOne\n");
+            (*it)->handlerEvent(); //处理事件完成之后再进行终止操作...
+        }
+    }
+
+    //poll(nullptr,0,5*1000);
 
     looping = false;
 }
@@ -62,4 +76,13 @@ void EventLoop::assertInLoopThread(){
 
 void EventLoop::abortNotInLoopThread(){
     std::cout<<"abortNotInLoopThread"<<std::endl;
+}
+
+void EventLoop::updateChannel(Channel* channel){
+    printf("eventloop add a channel\n");
+    poller->updateChannel(channel);
+}
+
+void EventLoop::setQuit(){
+    quit = true;
 }

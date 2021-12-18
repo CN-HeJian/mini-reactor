@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-objects = eventLoop.o main.o
+INCLUDE := .
+
+objects = eventLoop.o main.o channel.o poller.o
 
 GPP = g++
 CFLAGS = -lm -Wall -g 
@@ -23,10 +25,16 @@ mini-muduo:$(objects)
 	$(GPP) $(CFLAGS) -o mini-muduo $(objects)  -lpthread
 
 eventLoop.o : eventLoop.cpp
-	$(GPP) $(CFLAGS) -c eventLoop.cpp 
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c eventLoop.cpp 
 
 main.o :  main.cpp
 	$(GPP) $(CFLAGS) -c main.cpp 
+
+channel.o : channel.cpp channel.h
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c channel.cpp  channel.h
+
+poller.o : poller.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c poller.cpp
 
 
 .PHONY : clean
