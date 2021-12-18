@@ -32,3 +32,6 @@ main.o :  main.cpp
 .PHONY : clean
 clean :
 	-rm -f mini-muduo $(objects)
+
+run :
+	./mini-muduo
