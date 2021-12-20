@@ -26,7 +26,7 @@ Poller::~Poller()
 }
 
 void Poller::poll(int timeOutMs,ChannelList* activeChannelList){
-    printf("poll size of fd： %d\n",pollfds.size());
+    printf("poll size of fd： %zu\n",pollfds.size());
     int numEvents = ::poll(&*pollfds.begin(),pollfds.size(),timeOutMs);
     printf("numEvents: %d\n",numEvents);
     if(numEvents>0){
