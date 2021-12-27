@@ -26,7 +26,7 @@ public:
 
     ~Timer();
     
-    Timestamp expiration()const;
+    Timestamp getExpiration()const;
     bool repeat()const;
     
     //超时回调函数

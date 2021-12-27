@@ -18,7 +18,8 @@
     2）存在一个channel绑定时间描述符
     3）需要有所属的时间循环线程
     4）当可读事件发生时，epool返回调用channel对应的回调函数
-
+    5）依据当前时间找到所有到期时间，处理单个到期时间绑定的回调函数
+    6）执行完之后将最新到器的时间作为下一次到期时间
 */
 
 #ifndef TIMEQUEUE_H
@@ -30,36 +31,31 @@
 #include "channel.h"
 #include "timerId.h"
 
-
 #include <set>
 #include <vector>
 
 class TimerQueue{
 public:
-    //
     TimerQueue(EventLoop* loop);
     ~TimerQueue();
-
+    //用户调用的接口，添加一个时间接口
     TimerId addTimer(const TimerCallback& cb,Timestamp when,double interval);
-
 private:
     typedef  std::pair<Timestamp,Timer*> Entry;
     typedef  std::set<Entry> TimerLists;
-
+    //Channel读事件对应的回调函数
     void handleRead();
-
     std::vector<Entry> getExpired(Timestamp now);
     void reset(const std::vector<Entry>& expired,Timestamp now);
-
     bool insert(Timer *timer);
-
+    //事件循环
     EventLoop *loop_;
+    //时间描述符
     const int timefilefd_;
+    //文件描述符对应的读写错误事件
     Channel channelOfTimerfd_;
-
     //所有的timer
     TimerLists timers_;
 };
-
 
 #endif

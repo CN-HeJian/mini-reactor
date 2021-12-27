@@ -29,7 +29,7 @@ Timer::~Timer(){
 
 }
 
-Timestamp Timer::expiration()const{
+Timestamp Timer::getExpiration()const{
     return expiration_;
 }
 
