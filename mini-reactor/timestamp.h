@@ -25,8 +25,11 @@ private:
     int64_t microSecondsSinceEpoch;
 
 public:
+    //默认构造函数
     Timestamp(/* args */);
+    //隐式构造函数,只有一个参数的构造函数,仅仅在声明处添加
     explicit Timestamp(int64_t microSecondSinceEpoch_);
+
     void swap(Timestamp& other){
         std::swap(microSecondsSinceEpoch,other.microSecondsSinceEpoch);
     }
@@ -35,9 +38,11 @@ public:
 
     bool valid()const;
     int64_t getMicroSecondsSinceEpoch()const;
+    //
     static Timestamp now();
+    //
     static Timestamp invalid();
-
+    //微秒数量级
     static const int kMicroSecondsPerSeconds = 1000*1000;
 
     ~ Timestamp();
@@ -52,15 +57,18 @@ inline bool operator==(Timestamp lhs,Timestamp rhs){
     return lhs.getMicroSecondsSinceEpoch() == rhs.getMicroSecondsSinceEpoch();
 }
 
+
 inline double timeDifference(Timestamp high,Timestamp low){
     int diff = high.getMicroSecondsSinceEpoch()-low.getMicroSecondsSinceEpoch();
     return static_cast<double>(diff)/Timestamp::kMicroSecondsPerSeconds;
 }
 
+//给时间戳新加时间
 inline Timestamp addTime(Timestamp timestamp,double seconds){
+    //double--->int
     int delta = static_cast<int64_t>(seconds*Timestamp::kMicroSecondsPerSeconds);
+    //构造新的时间戳
     return Timestamp(timestamp.getMicroSecondsSinceEpoch()+delta);
 }
 
 #endif
-

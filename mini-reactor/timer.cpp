@@ -15,7 +15,6 @@
  */
 #include "timer.h"
 
-
 Timer::Timer(const TimerCallback& cb,Timestamp expiration,double interval)
    :callback_(cb),
     expiration_(expiration),
@@ -29,18 +28,35 @@ Timer::~Timer(){
 
 }
 
+/**
+ * @brief 返回到期时间
+ * 
+ */
 Timestamp Timer::getExpiration()const{
     return expiration_;
 }
 
+/**
+ * @brief 获取是否是重复定时
+ * 
+ */
 bool Timer::repeat()const{
     return repeat_;
 }
 
+/**
+ * @brief 启动绑定的回调函数
+ * 
+ */
 void Timer::run()const{
     callback_();
 }
 
+/**
+ * @brief 如果是周期性的定时,则刷新该定时器的到期时间
+ *        否则将定时到期时间设置为0
+ * 
+ */
 void Timer::restart(Timestamp now){
     if(repeat_){
         expiration_ = addTime(now,interval_);
@@ -48,4 +64,3 @@ void Timer::restart(Timestamp now){
         expiration_ = Timestamp::invalid();
     }
 }
-

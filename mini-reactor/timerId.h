@@ -17,20 +17,17 @@
 
 #include "timer.h"
 
+//使timeQueue中addTimer函数返回的Timer对用户来说是不可见的，内部实现Timer
 class TimerId 
 {
  public:
   explicit TimerId(Timer* timer)
     : value_(timer)
   {
+      
   }
-
-  // default copy-ctor, dtor and assignment are okay
-
  private:
   Timer* value_;
 };
-
-
 
 #endif

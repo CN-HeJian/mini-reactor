@@ -17,30 +17,84 @@
 #include <inttypes.h>
 #include <sys/time.h>
 
-//to learn
+//静态断言
 static_assert(sizeof(Timestamp)==sizeof(uint64_t));
 
+/**
+ * @brief 默认构造函数
+ *        
+ */
+Timestamp::Timestamp(/* args */)
+    :microSecondsSinceEpoch(0){
 
-Timestamp:: Timestamp(/* args */)
-    :microSecondsSinceEpoch(0)
-{
 }
 
+/**
+ * @brief 隐式构造函数
+ *        
+ */
 Timestamp::Timestamp(int64_t microSecondSinceEpoch_)
-    :microSecondsSinceEpoch(microSecondSinceEpoch_)
-{
+    :microSecondsSinceEpoch(microSecondSinceEpoch_){
 
 }
 
+/**
+ * @brief 析构函数
+ *        
+ */
+Timestamp::~Timestamp(){
+
+}
+
+/**
+ * @brief 获取此处的时间
+ *        返回TimeStamp
+ */
+Timestamp Timestamp::now(){
+    struct timeval tv;
+    //获取此刻的时间
+    gettimeofday(&tv,NULL);
+    int64_t seconds = tv.tv_sec;
+    return Timestamp(seconds*kMicroSecondsPerSeconds+tv.tv_usec);
+}
+
+/**
+ * @brief 判断时间是否合法
+ * 
+ */
+bool Timestamp::valid()const{
+    return microSecondsSinceEpoch>0;
+}
+
+/**
+ * @brief 返回时间戳的微秒数
+ * 
+ */
+int64_t Timestamp::getMicroSecondsSinceEpoch()const{
+    return microSecondsSinceEpoch;
+}
+
+/**
+ * @brief 返回一个不合法的时间，起始时间
+ * 
+ */
+Timestamp Timestamp::invalid(){
+    return Timestamp();
+}
+
+//将微秒表示的时间转换为秒表示的时间,并以字符串的形式返回
+//1639986827555555--->1639986827.555555
 std::string Timestamp::toString() const{
     char buf[32] = {0};
     int64_t seconds = microSecondsSinceEpoch/kMicroSecondsPerSeconds;
     int64_t microseconds = microSecondsSinceEpoch%kMicroSecondsPerSeconds;
+    //int snprintf(char* str,size_t size,const char *format,......)
     snprintf(buf,sizeof(buf)-1,"%" PRId64 ".%06" PRId64 "",seconds,microseconds);
     return buf;
 }
 
-
+//将微秒表示的时间转换为日期,并以字符串的形式返回
+//1639986827555555--->20211220 07:53:47.555555
 std::string Timestamp::toFormattedString() const{
     char buf[64] = {0};
     time_t seconds  = static_cast<time_t>(microSecondsSinceEpoch/kMicroSecondsPerSeconds);
@@ -57,49 +111,22 @@ std::string Timestamp::toFormattedString() const{
     return buf;
 }
 
-bool Timestamp::valid()const{
-    return microSecondsSinceEpoch>0;
-}
 
-int64_t Timestamp::getMicroSecondsSinceEpoch()const{
-    return microSecondsSinceEpoch;
-}
+// int main(){
+//     //Timestamp ti(1639986827555555);
+//     Timestamp ti(0); //19700101 00:00:00.000000
 
-Timestamp Timestamp::now(){
-    //to learn
-    struct timeval tv;
-    //to learn
-    gettimeofday(&tv,NULL);
-    int64_t seconds = tv.tv_sec;
-    return Timestamp(seconds*kMicroSecondsPerSeconds+tv.tv_usec);
-}
-
-Timestamp Timestamp::invalid(){
-    return Timestamp();
-}
-
-Timestamp::~Timestamp(){
-
-}
-
-
-/*
-demo
-int main(){
-    Timestamp ti(1639986827555555);
-    ti.now();
+//     ti.now();
     
-    int64_t _microSecondsSinceEpoch =  ti.getMicroSecondsSinceEpoch();
-    std::cout<<"microSecondsSinceEpoch: "<< _microSecondsSinceEpoch<<std::endl;
+//     int64_t _microSecondsSinceEpoch =  ti.getMicroSecondsSinceEpoch();
+//     std::cout<<"microSecondsSinceEpoch: "<< _microSecondsSinceEpoch<<std::endl;
 
-    bool isValid = ti.valid();
-    std::cout<<"Valid: "<<isValid<<std::endl;
+//     bool isValid = ti.valid();
+//     std::cout<<"Valid: "<<isValid<<std::endl;
 
-    std::string _s_f = ti.toString();
-    std::cout<<"_s_f: "<<_s_f<<std::endl;
+//     std::string _s_f = ti.toString();
+//     std::cout<<"_s_f: "<<_s_f<<std::endl;
 
-    std::string _s_format = ti.toFormattedString();
-    std::cout<<"_s_format: "<<_s_format<<std::endl;
-
-}
-*/
+//     std::string _s_format = ti.toFormattedString();
+//     std::cout<<"_s_format: "<<_s_format<<std::endl;
+// }

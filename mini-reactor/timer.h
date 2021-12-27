@@ -23,18 +23,13 @@ class Timer
 {
 public:
     Timer(const TimerCallback& cb,Timestamp expiration,double interval);
-
     ~Timer();
-    
     Timestamp getExpiration()const;
     bool repeat()const;
-    
     //超时回调函数
     void run()const;
-    //
+    //设置新的定时时间
     void restart(Timestamp now);
-
-    //typedef std::function(void()) TimerCallBack;
 private:
     //超时的回调函数
     const TimerCallback callback_;

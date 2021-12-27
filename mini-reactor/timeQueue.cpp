@@ -123,7 +123,6 @@ void TimerQueue::handleRead(){
     reset(expired, now);
 }
 
-
 /**
  * @brief 使用二分法获取到期的时间
  *        同时删除TimeLists中已经到期的时间
@@ -147,7 +146,6 @@ std::vector<TimerQueue::Entry> TimerQueue::getExpired(Timestamp now){
 /**
  * @brief 处理完到期的时间之后、需要重新设置时间
  *        比如将原来的重复定时情况
- * 
  */
 void TimerQueue::reset(const std::vector<Entry>& expired,Timestamp now){
     Timestamp nextExpire;
@@ -175,15 +173,15 @@ void TimerQueue::reset(const std::vector<Entry>& expired,Timestamp now){
  *          否则插入即可
  */
 bool TimerQueue::insert(Timer* timer){
-  bool earliestChanged = false;
-  Timestamp when = timer->getExpiration();
-  //TimeLists中没有或者新加的是第一个到期的时间戳
-  TimerLists::iterator it = timers_.begin();
-  if (it == timers_.end() || when < it->first){                                                                                     
-    earliestChanged = true;
-  }
-  //管理Timer的TimeLists中插入Entry
-  std::pair<TimerLists::iterator, bool> result = timers_.insert(std::make_pair(when, timer));
-  assert(result.second);
-  return earliestChanged;
+    bool earliestChanged = false;
+    Timestamp when = timer->getExpiration();
+    //TimeLists中没有或者新加的是第一个到期的时间戳
+    TimerLists::iterator it = timers_.begin();
+    if (it == timers_.end() || when < it->first){                                                                                     
+        earliestChanged = true;
+    }
+    //管理Timer的TimeLists中插入Entry
+    std::pair<TimerLists::iterator, bool> result = timers_.insert(std::make_pair(when, timer));
+    assert(result.second);
+    return earliestChanged;
 }
