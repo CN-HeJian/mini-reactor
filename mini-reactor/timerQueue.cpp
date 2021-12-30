@@ -59,6 +59,7 @@ void resetTimerfd(int timerfd ,Timestamp expiration){
     bzero(&newValue,sizeof(newValue));
     bzero(&oldValue,sizeof(oldValue));
     //设置新的时间
+    std::cout<<"build new time "<<expiration.toFormattedString()<<std::endl;
     newValue.it_value = howMuchTimeFromNow(expiration);
     //通过文件描述符通知的定时事件，优点是通过select、poll、epoll监视文件描述符号
     int ret = ::timerfd_settime(timerfd,0,&newValue,&oldValue);
@@ -100,7 +101,13 @@ TimerQueue::~TimerQueue(){
 TimerId TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,double interval){
     //回调函数绑定到Timer上
     Timer* timer = new Timer(cb,when,interval);
-    loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop,this,timer));
+    loop_->assertInLoopThread();
+    //loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop,this,timer));
+     bool earliestChanged = insert(timer);
+     //更新文件描述符、将最早过期的时间作为系统调用
+     if(earliestChanged){
+         resetTimerfd(timefilefd_,timer->getExpiration());
+     }
     return TimerId(timer);
 }
 
@@ -119,11 +126,15 @@ void TimerQueue::addTimerInLoop(Timer* timer){
  *         
  */
 void TimerQueue::handleRead(){
+    std::cout<<"times_ size: "<< timers_.size() <<std::endl;
     loop_->assertInLoopThread();
     //获取当前时间
     Timestamp now(Timestamp::now());
+    //记得要读文件描述符，不然会一直触发读事件
+    readTimerfd(timefilefd_, now);
     //获取截止到现在的所有时间，使用二分法
     std::vector<Entry> expired = getExpired(now);
+    std::cout<<"expires size: "<< expired.size() <<std::endl;
     for (std::vector<Entry>::iterator it = expired.begin();it != expired.end(); ++it)
     {
         it->second->run();
@@ -182,6 +193,7 @@ void TimerQueue::reset(const std::vector<Entry>& expired,Timestamp now){
  *          否则插入即可
  */
 bool TimerQueue::insert(Timer* timer){
+
     bool earliestChanged = false;
     Timestamp when = timer->getExpiration();
     //TimeLists中没有或者新加的是第一个到期的时间戳

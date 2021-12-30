@@ -47,8 +47,9 @@ public:
     ~TimerQueue();
     //用户调用的接口，添加一个时间接口
     TimerId addTimer(const TimerCallback& cb,Timestamp when,double interval);
-    void addTimerInLoop(Timer* timer);
+    //void addTimerInLoop(Timer* timer);
 private:
+    void addTimerInLoop(Timer* timer);
     typedef  std::pair<Timestamp,Timer*> Entry;
     typedef  std::set<Entry> TimerLists;
     //Channel读事件对应的回调函数

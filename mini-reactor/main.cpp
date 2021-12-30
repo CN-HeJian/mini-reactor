@@ -2,14 +2,27 @@
 #include "eventLoop.h"
 #include <pthread.h>
 #include <sys/timerfd.h>
+#include <sys/syscall.h>
 #include "channel.h"
 #include <cstring>
 #include <string.h>
+#include "thread.h"
 
 using namespace std;
 
 EventLoop* g_loop;
 int g_flag = 0;
+
+void print(){
+    printf("print pid:%ld\n",syscall(SYS_gettid));
+    //abort();
+}
+
+void* threadFunc(void* ){
+    printf("threadFunc pid:%ld\n",syscall(SYS_gettid));
+    g_loop->runAfter(8.0,print);
+    return nullptr;
+}
 
 void timeout(){
     printf("Timeout!\n");
@@ -42,16 +55,44 @@ void run1(){
 
 
 int main(){
-    printf("main(): pid = %d, flag = %d\n", getpid(), g_flag);
+    
+    std::cout<<"main begin: "<<Timestamp::now().toFormattedString()<<std::endl;
+
+    printf("main pid:%ld\n",syscall(SYS_gettid));
+
+    //printf("main pid:%ld\n",pthread_self());
 
     EventLoop loop;
+    g_loop = &loop;
 
-    g_loop= &loop;
+    pthread_t th;
 
-    loop.runAfter(2,run1);
+    int ret = pthread_create(&th,NULL,threadFunc,NULL);
+    if(ret!=0){
+        std::cout<<"create thread failed\n"<<endl;
+    }
+
+
+    //Thread t(threadFunc);
+    //t.start();
+    
     loop.loop();
 
-    printf("main(): pid = %d, flag = %d\n", getpid(), g_flag);
+
+
+
+
+
+    // printf("main(): pid = %d, flag = %d\n", getpid(), g_flag);
+
+    // EventLoop loop;
+
+    // g_loop= &loop;
+
+    // loop.runAfter(2,run1);
+    // loop.loop();
+
+    // printf("main(): pid = %d, flag = %d\n", getpid(), g_flag);
 
     // int timerfd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
     // Channel channel(&loop,timerfd);

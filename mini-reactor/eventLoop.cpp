@@ -16,6 +16,8 @@
 
 #include "eventLoop.h"
 #include <sys/eventfd.h>
+#include "thread.h"
+#include <sys/syscall.h>
 
 static int createEventfd(){
     int evtfd = ::eventfd(0,EFD_NONBLOCK|EFD_CLOEXEC);
@@ -30,7 +32,7 @@ __thread EventLoop* t_loopInThisThread=0;
 
 EventLoop::EventLoop()
     :looping(false),
-    threadId(getpid()),
+    threadId(syscall(SYS_gettid)),
     quit(false),
     poller(new Poller(this)),
     callingPendingFunctors_(false),
@@ -82,6 +84,7 @@ void EventLoop::loop(){
 
 void EventLoop::wakeup(){
     uint64_t one = 1;
+    std::cout<<"wakeup :"<<std::endl;
     ssize_t n = ::write(wakeupFd,&one,sizeof one);
     if(n!=sizeof(one)){
         std::cout<<"Eventloop.cpp:write wakeupFd failed"<<std::endl;
@@ -102,6 +105,7 @@ void EventLoop::runInLoop(const Functor& cb){
     if(isInThread()){
         cb();
     }else{
+        std::cout<<"not IO thread task"<<std::endl;
         queueInLoop(cb);
     }
 }
@@ -115,6 +119,7 @@ void EventLoop::queueInLoop(const Functor& cb){
     //如果是当前线程、但是还没有执行到doPendingFunctors(),按照正常逻辑，就算不wakeup，也会被唤醒执行doPendingFunctors()
     //可以减少对IO的读写...
     if(!isInThread() || callingPendingFunctors_){
+        std::cout<<"wake up wake up"<<std::endl;
         wakeup();
     }
 }
@@ -155,11 +160,12 @@ void EventLoop::assertInLoopThread(){
 
 void EventLoop::abortNotInLoopThread(){
     std::cout<<"abortNotInLoopThread"<<std::endl;
+    abort();
 }
 
 bool EventLoop::isInThread() const{
-    //printf("currentThreadId id %d,threadId is %d\n",getpid(),threadId);
-    return threadId == getpid();
+    printf("currentThreadId id %ld,threadId is %d\n",syscall(SYS_gettid),threadId);
+    return threadId == syscall(SYS_gettid);
 }
 
 //该函数可以跨线程调用！！！
@@ -172,7 +178,6 @@ void EventLoop::setQuit(){
 
 TimerId EventLoop::runAt(const Timestamp& time,const TimerCallback& cb){
     return timerQueue_->addTimer(cb,time,0.0);
-    //return  TimerId();
 }
 
 TimerId EventLoop::runAfter(double delay,const TimerCallback& cb){

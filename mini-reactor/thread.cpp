@@ -28,14 +28,19 @@ namespace{
 __thread pid_t t_cachedTid = 0;
 
 void afterFork(){
-
+    t_cachedTid = gettid();
+    CurrentThread::t_threadName = "main";
 }
 
-class ThreadNameInitilizer{
-
+class ThreadNameInitializer{
+public:
+    ThreadNameInitializer(){
+        CurrentThread::t_threadName = "main";
+        pthread_atfork(NULL, NULL, &afterFork);
+    }
 };
 
-ThreadNameInitilizer init;
+ThreadNameInitializer init;
 
 struct ThreadData{
     typedef Thread::ThreadFunc ThreadFunc;
@@ -118,6 +123,7 @@ void Thread::start(){
     started_ = true;
 
     ThreadData* data = new ThreadData(func_,name_,tid_);
+    //pthread_create 返回值非0时则创建失败
     if(pthread_create(&pthreadId_,NULL,&startThread,data))
     {
         started_ = false;

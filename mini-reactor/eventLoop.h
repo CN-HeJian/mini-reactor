@@ -113,6 +113,8 @@ private:
 
     //回调函数集合
     std::vector<Functor> pendingFunctors_;
+
+    void addTimeInLoop(Timer* timer);
 };
 
 #endif

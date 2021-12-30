@@ -15,7 +15,7 @@
 
 INCLUDE := .
 
-objects = timerQueue.o  eventLoop.o main.o channel.o poller.o   timestamp.o  mutex.o timer.o
+objects = timerQueue.o  eventLoop.o main.o channel.o poller.o   timestamp.o  mutex.o timer.o thread.o
 
 GPP = g++
 CFLAGS = -lm -Wall -g 
@@ -49,6 +49,9 @@ timer.o : timer.cpp
 
 mutex.o : mutex.cpp
 	$(GPP) $(CFLAGS) -I$(INCLUDE) -c mutex.cpp
+
+thread.o : thread.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c thread.cpp
 
 
 
