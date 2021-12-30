@@ -14,6 +14,7 @@
 
 
 #include <sys/timerfd.h>
+#include <sys/syscall.h>
 #include "timerQueue.h"
 #include "unistd.h"
 #include "eventLoop.h"
@@ -40,7 +41,7 @@ struct timespec howMuchTimeFromNow(Timestamp when){
 void readTimerfd(int timefd,Timestamp now){
     uint64_t howmany;
     ssize_t n = read(timefd,&howmany,sizeof(howmany));
-    std::cout<<"TimeQueue::handerRead(): "<<howmany<<" at "<<now.toString()<<std::endl;
+    std::cout<<"TimeQueue::handerRead(): "<<howmany<<" at "<<now.toFormattedString()<<std::endl;
     std::cout<<"what is n: "<<n<<" sizeof howmany: "<<sizeof(howmany)<<std::endl;
     if(n!=sizeof(howmany)){
         std::cout<<"failed: readTimefd\n"<<std::endl;
@@ -101,7 +102,8 @@ TimerQueue::~TimerQueue(){
 TimerId TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,double interval){
     //回调函数绑定到Timer上
     Timer* timer = new Timer(cb,when,interval);
-    loop_->assertInLoopThread();
+    printf("currentThreadId id %ld\n",syscall(SYS_gettid));
+   // loop_->assertInLoopThread();
     //loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop,this,timer));
      bool earliestChanged = insert(timer);
      //更新文件描述符、将最早过期的时间作为系统调用

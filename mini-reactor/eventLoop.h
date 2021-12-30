@@ -61,6 +61,9 @@ public:
     void runInLoop(const Functor& cb);
     void queueInLoop(const Functor& cb);
 
+    //获取所属线程编号
+    int getThreadId();
+
 private:
     //判断自身是否在所属线程里面
     bool isInThread() const;
