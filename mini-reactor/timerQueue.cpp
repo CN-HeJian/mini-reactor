@@ -102,14 +102,14 @@ TimerQueue::~TimerQueue(){
 TimerId TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,double interval){
     //回调函数绑定到Timer上
     Timer* timer = new Timer(cb,when,interval);
-    printf("currentThreadId id %ld\n",syscall(SYS_gettid));
+    //printf("currentThreadId id %ld\n",syscall(SYS_gettid));
    // loop_->assertInLoopThread();
-    //loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop,this,timer));
-     bool earliestChanged = insert(timer);
+    loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop,this,timer));
+   //  bool earliestChanged = insert(timer);
      //更新文件描述符、将最早过期的时间作为系统调用
-     if(earliestChanged){
-         resetTimerfd(timefilefd_,timer->getExpiration());
-     }
+    //  if(earliestChanged){
+    //      resetTimerfd(timefilefd_,timer->getExpiration());
+    //  }
     return TimerId(timer);
 }
 
