@@ -118,6 +118,11 @@ Thread::~Thread(){
     }
 }
 
+
+bool Thread::started()const{
+    return started_;
+}
+
 void Thread::start(){
     assert(!started_);
     started_ = true;
