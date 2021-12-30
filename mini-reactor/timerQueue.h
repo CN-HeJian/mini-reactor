@@ -22,17 +22,24 @@
     6）执行完之后将最新到器的时间作为下一次到期时间
 */
 
-#ifndef TIMEQUEUE_H
-#define TIMEQUEUE_H
+#ifndef TIMERQUEUE_H
+#define TIMERQUEUE_H
 
 #include "timestamp.h"
 #include "timer.h"
-#include "eventLoop.h"
 #include "channel.h"
 #include "timerId.h"
+#include  "callback.h"
 
 #include <set>
 #include <vector>
+#include <assert.h>
+
+
+
+//class EventLoop;
+//class Timer;
+//class TimerId;
 
 class TimerQueue{
 public:
@@ -40,6 +47,7 @@ public:
     ~TimerQueue();
     //用户调用的接口，添加一个时间接口
     TimerId addTimer(const TimerCallback& cb,Timestamp when,double interval);
+    void addTimerInLoop(Timer* timer);
 private:
     typedef  std::pair<Timestamp,Timer*> Entry;
     typedef  std::set<Entry> TimerLists;
@@ -53,7 +61,7 @@ private:
     //时间描述符
     const int timefilefd_;
     //文件描述符对应的读写错误事件
-    Channel channelOfTimerfd_;
+    Channel* channelOfTimerfd_;
     //所有的timer
     TimerLists timers_;
 };

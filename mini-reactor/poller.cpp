@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <poller.h>
+#include "poller.h"
 #include <assert.h>
 
 Poller::Poller(EventLoop* loop)
@@ -34,6 +34,10 @@ void Poller::poll(int timeOutMs,ChannelList* activeChannelList){
     }
 }
 
+/**
+ * @brief  新增的updateChannel
+ * 
+ */
 void Poller::updateChannel(Channel *channel){
    //assertInLoopThread();
 

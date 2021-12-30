@@ -14,7 +14,9 @@
 
 
 #include <sys/timerfd.h>
-#include "timeQueue.h"
+#include "timerQueue.h"
+#include "unistd.h"
+#include "eventLoop.h"
 
 int createTimerfd(){
     int timefd = timerfd_create(CLOCK_MONOTONIC,TFD_NONBLOCK | TFD_CLOEXEC);
@@ -70,18 +72,20 @@ void resetTimerfd(int timerfd ,Timestamp expiration){
 TimerQueue::TimerQueue(EventLoop* loop)
     :loop_(loop),
     timefilefd_(createTimerfd()),
-    channelOfTimerfd_(loop,timefilefd_),
+    channelOfTimerfd_(new Channel(loop,timefilefd_)),
     timers_()
 {
-    channelOfTimerfd_.setReadCallBack(std::bind(&TimerQueue::handleRead,this));
-    channelOfTimerfd_.enableReadEvent();
+    channelOfTimerfd_->setReadCallBack(std::bind(&TimerQueue::handleRead,this));
+    channelOfTimerfd_->enableReadEvent();
 }
 
 TimerQueue::~TimerQueue(){
     ::close(timefilefd_);
     //此处不需要delete channel
     for(TimerLists::iterator it = timers_.begin();it!=timers_.end();it++){
-        delete it->second;
+        if(it->second){
+            delete it->second;
+        }
     }
 }
 
@@ -96,12 +100,17 @@ TimerQueue::~TimerQueue(){
 TimerId TimerQueue::addTimer(const TimerCallback& cb,Timestamp when,double interval){
     //回调函数绑定到Timer上
     Timer* timer = new Timer(cb,when,interval);
+    loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop,this,timer));
+    return TimerId(timer);
+}
+
+void TimerQueue::addTimerInLoop(Timer* timer){
+    loop_->assertInLoopThread();
     bool earliestChanged = insert(timer);
     //更新文件描述符、将最早过期的时间作为系统调用
     if(earliestChanged){
         resetTimerfd(timefilefd_,timer->getExpiration());
     }
-    return TimerId(timer);
 }
 
 /**

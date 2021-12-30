@@ -15,6 +15,7 @@
 #include <channel.h>
 #include <poll.h>
 #include <iostream>
+#include "eventLoop.h"
 
 const int Channel::kNoneEvent = 0;
 const int Channel::kReadEvent = POLLIN|POLLPRI;

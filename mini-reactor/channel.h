@@ -15,7 +15,7 @@
 #define CHANNEL_H
 
 #include <functional>
-#include "eventLoop.h"
+//#include "eventLoop.h"
 
 class EventLoop;
 

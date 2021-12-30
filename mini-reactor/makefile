@@ -11,30 +11,45 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#eventLoop.o main.o channel.o poller.o   timestamp.o  mutex.o timer.o
 
 INCLUDE := .
 
-objects = eventLoop.o main.o channel.o poller.o
+objects = timerQueue.o  eventLoop.o main.o channel.o poller.o   timestamp.o  mutex.o timer.o
 
 GPP = g++
 CFLAGS = -lm -Wall -g 
 
-all: clean mini-muduo 
  
 mini-muduo:$(objects)
 	$(GPP) $(CFLAGS) -o mini-muduo $(objects)  -lpthread
+
+all: clean mini-muduo 
 
 eventLoop.o : eventLoop.cpp
 	$(GPP) $(CFLAGS) -I$(INCLUDE) -c eventLoop.cpp 
 
 main.o :  main.cpp
-	$(GPP) $(CFLAGS) -c main.cpp 
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c main.cpp 
 
 channel.o : channel.cpp channel.h
-	$(GPP) $(CFLAGS) -I$(INCLUDE) -c channel.cpp  channel.h
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c channel.cpp  
 
 poller.o : poller.cpp
 	$(GPP) $(CFLAGS) -I$(INCLUDE) -c poller.cpp
+
+timerQueue.o : timerQueue.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c timerQueue.cpp
+
+timestamp.o : timestamp.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c timestamp.cpp
+
+timer.o : timer.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c timer.cpp
+
+mutex.o : mutex.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c mutex.cpp
+
 
 
 .PHONY : clean
