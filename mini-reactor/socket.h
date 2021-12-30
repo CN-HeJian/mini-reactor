@@ -24,8 +24,10 @@ public:
 
     int getfd()const;
 
+    //给socket绑定端口号和地址
     void bindAddress(const InetAddress& localaddr);
 
+    //监听
     void listen();
 
     int accept(InetAddress* peeraddr);

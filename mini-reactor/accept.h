@@ -38,9 +38,13 @@ private:
     void handleRead();
 
     EventLoop* loop_;
+    //listen套接字
     Socket acceptSocket_;
+    //用于观察accpetSocket上的readable事件
     Channel acceptChannel_;
+    //当有新连接时的回调函数
     newConnectCallBack newConnextionCallBack_;
+    //是否处于监听状态
     bool listening_;
 };
 

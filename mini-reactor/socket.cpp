@@ -31,18 +31,22 @@ int Socket::getfd()const{
     return sockfd_;
 }
 
+//绑定端口
 void Socket::bindAddress(const InetAddress& addr){
-    sockets::bindOrDie(sockfd_,addr.getSockAddrInet());
+    socketOps::bindOrDie(sockfd_,addr.getSockAddrInet());
 }
 
+//监听端口
 void Socket::listen(){
-    sockets::listenOrDie(sockfd_);
+    socketOps::listenOrDie(sockfd_);
 }
 
+//接受连接
 int Socket::accept(InetAddress* peeraddr){
     struct sockaddr_in addr;
     bzero(&addr,sizeof addr);
-    int connfd = sockets::accpet(sockfd_,&addr);
+    //addr是用来保存客户端套接字对应的地方，包括客户端IP和端口信息
+    int connfd = socketOps::accpet(sockfd_,&addr);
     if(connfd>=0){
         peeraddr->setSockAddrInet(addr);
     }
@@ -51,5 +55,9 @@ int Socket::accept(InetAddress* peeraddr){
 
 void Socket::setReuseAddr(bool on){
     int optval = on?1:0;
+    //SOL_SOCKET： 套接字级别上设置选项
+    //SO_REUSEDADDR: 打开或关闭地址复用功能
+    //socket 关闭之后，操作系统不会立即收回对端口的控制权，而是要经历一个等待阶段
+    //此时对这个端口绑定就会出错，设置了SO_REUSEDADDR之后才会消除等待时间
     ::setsockopt(sockfd_,SOL_SOCKET,SO_REUSEADDR,&optval,sizeof optval);
 }

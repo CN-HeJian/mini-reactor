@@ -17,37 +17,45 @@
 #include <string.h>
 #include <netinet/in.h>
 #include "socketOps.h"
+#include <assert.h>
 
 static const in_addr_t kInaddrAny = INADDR_ANY;
 
-static_assert((sizeof(InetAddress)==sizeof(struct sockaddr_in)));
+static_assert(sizeof(InetAddress)==sizeof(sockaddr_in));
 
+//only port
 InetAddress::InetAddress(uint16_t port){
     bzero(&addr_,sizeof addr_);
     addr_.sin_family = AF_INET;
-    addr_.sin_addr.s_addr = sockets::hostToNetwork32(kInaddrAny);
-    addr_.sin_port = sockets::hostToNetwork16(port);
+    addr_.sin_addr.s_addr = socketOps::hostToNetwork32(kInaddrAny);
+    addr_.sin_port = socketOps::hostToNetwork16(port);
 }
 
+//port and ip[网络]
 InetAddress::InetAddress(const std::string &ip,uint16_t port){
     bzero(&addr_,sizeof addr_);
-    sockets::fromHostPort(ip.c_str(),port,&addr_);
+    socketOps::fromHostPort(ip.c_str(),port,&addr_);
 }
 
+//sockaddr_in
 InetAddress::InetAddress(const struct sockaddr_in& addr)
     :addr_(addr){
 }
 
+//将网络地址转换为主机地址
 std::string InetAddress::toHostPort()const{
     char buf[32];
-    sockets::toHostPort(buf,sizeof(buf),addr_);
+    //转换为主机地址
+    socketOps::toHostPort(buf,sizeof(buf),addr_);
     return buf;
 }
 
+//获取主机地址
 const struct sockaddr_in& InetAddress::getSockAddrInet() const{
     return addr_;
 }
 
+//改变主机地址
 void InetAddress::setSockAddrInet(const struct sockaddr_in& addr){
     addr_ = addr;
 }

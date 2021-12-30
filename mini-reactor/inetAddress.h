@@ -20,10 +20,9 @@
 
 class InetAddress{
 public:
+    //三种不同的构造函数
     explicit InetAddress(uint16_t port);
-
     InetAddress(const std::string &ip,uint16_t port);
-
     InetAddress(const struct sockaddr_in& addr);
 
     std::string toHostPort()const;

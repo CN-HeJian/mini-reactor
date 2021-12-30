@@ -15,8 +15,9 @@
 
 INCLUDE := .
 
-objects = timerQueue.o  eventLoop.o main.o channel.o poller.o   timestamp.o  mutex.o timer.o thread.o eventLoopThread.o\
-condition.o
+objects = 	timerQueue.o  eventLoop.o main.o channel.o poller.o\
+			timestamp.o  mutex.o timer.o thread.o eventLoopThread.o\
+			condition.o socket.o socketOps.o accept.o inetAddress.o
 
 GPP = g++
 CFLAGS = -lm -Wall -g 
@@ -60,6 +61,17 @@ eventLoopThread.o : eventLoopThread.cpp
 condition.o : condition.cpp
 	$(GPP) $(CFLAGS) -I$(INCLUDE) -c condition.cpp
 
+socket.o : socket.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c socket.cpp
+
+socketOps.o : socketOps.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c socketOps.cpp
+
+accept.o : accept.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c accept.cpp
+
+inetAddress.o : inetAddress.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c inetAddress.cpp
 
 .PHONY : clean
 clean :

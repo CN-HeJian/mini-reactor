@@ -23,35 +23,43 @@
 
 Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr)
   : loop_(loop),
-    acceptSocket_(sockets::createNonblockingOrDie()),
+    acceptSocket_(socketOps::createNonblockingOrDie()),
     acceptChannel_(loop, acceptSocket_.getfd()),
     listening_(false)
 {
   acceptSocket_.setReuseAddr(true);
   acceptSocket_.bindAddress(listenAddr);
-  acceptChannel_.setReadCallBack(
-      std::bind(&Acceptor::handleRead, this));
+
+  acceptChannel_.setReadCallBack(std::bind(&Acceptor::handleRead, this));
 }
 
+//套接字监听
 void Acceptor::listen()
 {
   loop_->assertInLoopThread();
   listening_ = true;
   acceptSocket_.listen();
+
+  //只有监听了才会设置读事件
   acceptChannel_.enableReadEvent();
 }
 
+//出现了读事件、表明有新的连接
 void Acceptor::handleRead()
 {
   loop_->assertInLoopThread();
+
+  //peerAddr 客户端的...
   InetAddress peerAddr(0);
   
   int connfd = acceptSocket_.accept(&peerAddr);
+
   if (connfd >= 0) {
     if (newConnextionCallBack_) {
+      //新的连接：：
       newConnextionCallBack_(connfd, peerAddr);
     } else {
-      sockets::close(connfd);
+      socketOps::close(connfd);
     }
   }
 }
