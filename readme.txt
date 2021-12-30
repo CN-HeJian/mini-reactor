@@ -25,3 +25,15 @@ Timer
 TimerQueue
 1）提供插入时间以及取消时间的接口
 2）
+
+socketOps
+1) 转换主机地址、网络地址
+2) 封装系统调用::bind  ::listen  ::accpet  ::inet_pton  ::inet_ntop 等系统调用
+
+socket
+1) 包含一个监听端口的文件描述符号
+2）包含bind listen accpet 
+
+INetAddress
+1) 创建一个addr..
+2）封装了一下sockaddr_in
