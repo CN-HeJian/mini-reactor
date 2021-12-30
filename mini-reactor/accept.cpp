@@ -63,3 +63,13 @@ void Acceptor::handleRead()
     }
   }
 }
+
+//设置回调函数
+void Acceptor::setNewConnectionCallBack(const newConnectCallBack& cb){
+      newConnextionCallBack_ = cb;
+}
+
+//判断是否正在监听
+bool Acceptor::listenning()const{
+  return listening_;
+}
