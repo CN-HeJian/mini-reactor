@@ -14,6 +14,17 @@
 #ifndef CALLBACK_H
 #define CALLBACK_H
 
+#include <functional>
+#include <iostream>
+#include <memory>
+
+class TcpConnection;
+
+typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
+
 typedef std::function<void()> TimerCallback;
+typedef std::function<void(const TcpConnectionPtr&)> ConnectionCallback;
+typedef std::function<void(const TcpConnectionPtr& ,const char* data,ssize_t len)> MessageCallback; 
+
 
 #endif

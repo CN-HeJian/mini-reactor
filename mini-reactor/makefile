@@ -17,11 +17,11 @@ INCLUDE := .
 
 objects = 	timerQueue.o  eventLoop.o main.o channel.o poller.o\
 			timestamp.o  mutex.o timer.o thread.o eventLoopThread.o\
-			condition.o socket.o socketOps.o accept.o inetAddress.o
+			condition.o socket.o socketOps.o accept.o inetAddress.o\
+			tcpServer.o tcpConnection.o
 
 GPP = g++
 CFLAGS = -lm -Wall -g 
-
  
 mini-muduo:$(objects)
 	$(GPP) $(CFLAGS) -o mini-muduo $(objects)  -lpthread
@@ -72,6 +72,12 @@ accept.o : accept.cpp
 
 inetAddress.o : inetAddress.cpp
 	$(GPP) $(CFLAGS) -I$(INCLUDE) -c inetAddress.cpp
+
+tcpServer.o : tcpServer.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c tcpServer.cpp
+
+tcpConnection.o : tcpConnection.cpp
+	$(GPP) $(CFLAGS) -I$(INCLUDE) -c tcpConnection.cpp
 
 .PHONY : clean
 clean :
