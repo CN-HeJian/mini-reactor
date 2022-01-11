@@ -39,7 +39,7 @@ void Poller::poll(int timeOutMs,ChannelList* activeChannelList){
  * 
  */
 void Poller::updateChannel(Channel *channel){
-   //assertInLoopThread();
+   assertInLoopThread();
 
    //此处更新日志！！！LOG_TRANCE
 
@@ -60,14 +60,46 @@ void Poller::updateChannel(Channel *channel){
         int idx = channel->getIndex();
         assert(0<=idx && idx <static_cast<int>(pollfds.size()));
         struct pollfd& pfd = pollfds[idx];
-        assert(pfd.fd==channel->getFd() || pfd.fd==-1);
+        assert(pfd.fd == channel->getFd() || pfd.fd == -channel->getFd()-1);
         pfd.events = static_cast<short>(channel->getevents());
         pfd.revents = 0;
         if(channel->isNoneEvent()){
-            pfd.fd = -1;
+            pfd.fd = -channel->getFd()-1;
         }
     }
 }
+
+void Poller::removeChannel(Channel* channel){
+    assertInLoopThread();
+    //能在channels_里面找到channel
+    assert(channels.find(channel->getFd()) != channels.end());
+    //找到的两个channe是同一个channel
+    assert(channels[channel->getFd()] == channel);
+    //这个Channel上没有事件需要监听
+    assert(channel->isNoneEvent());
+
+    int idx = channel->getIndex();
+    assert(0<=idx && idx < static_cast<int>(pollfds.size()));
+    const struct pollfd & pfd = pollfds[idx];
+    (void) pfd;
+    //表示这个上面没有监听的事件
+    assert(pfd.fd == -channel->getFd()-1 && pfd.events == channel->getevents());
+    size_t n = channels.erase(channel->getFd());
+    assert(n == 1); (void)n;
+
+    if((long unsigned int)idx==pollfds.size()-1){
+        pollfds.pop_back();
+    }else{
+        int channelAtEnd = pollfds.back().fd;
+        iter_swap(pollfds.begin()+idx, pollfds.end()-1);
+        if(channelAtEnd<0){
+            channelAtEnd = -channelAtEnd-1;
+        }
+        channels[channelAtEnd]->setIndex(idx);
+        pollfds.pop_back();
+    }
+}
+
 
 void Poller::findActiveChannel(int NumOfFd,ChannelList* activeChannels) const{
     for(PollFd_vec::const_iterator pfd = pollfds.begin();pfd!=pollfds.end()&&NumOfFd>0;++pfd){
@@ -83,4 +115,7 @@ void Poller::findActiveChannel(int NumOfFd,ChannelList* activeChannels) const{
     }
 }
 
+void Poller::assertInLoopThread() { 
+    which_loop->assertInLoopThread(); 
+}
 

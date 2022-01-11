@@ -200,3 +200,15 @@ struct sockaddr_in socketOps::getLocalAddr(int sockfd)
   }
   return localaddr;
 }
+
+int socketOps::getSocketError(int sockfd){
+    int optval;
+
+    socklen_t optlen = sizeof optval;
+
+    if(::getsockopt(sockfd,SOL_SOCKET,SO_ERROR,&optval,&optlen)){
+        return errno;
+    }else{
+        return optval;
+    }
+}

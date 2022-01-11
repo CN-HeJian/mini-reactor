@@ -35,6 +35,8 @@ public:
     //设置已经发生的事件
     void setRevents(int rev);
 
+    EventLoop* ownerLoop();
+
     //判断有没有事件发生
     bool isNoneEvent() const;
 
@@ -45,6 +47,7 @@ public:
     void setReadCallBack(const callBack&);
     void setWriteCallBack(const callBack&);
     void setErrorCallBackk(const callBack&);
+    void setCloseCallBack(const callBack&);
 
     //使能，添加所需要关心的事件
     void enableReadEvent();
@@ -80,10 +83,13 @@ private:
     //用来标记是否已经加入到pooler类中
     int index;
 
+    bool eventHandling_;
+
     //处理事件时调用的三种不同的函数
     callBack  read_Callback;
     callBack  write_Callback;
     callBack  error_Callback;
+    callBack  close_Callback;
 };
 
 #endif

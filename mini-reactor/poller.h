@@ -37,7 +37,9 @@ public:
     void poll(int timeOutMs,ChannelList* activeChannelList);
 
     void updateChannel(Channel *channel);
+    void removeChannel(Channel *channel);
 
+    void assertInLoopThread();
 private:
     
     void findActiveChannel(int NumofFd,ChannelList* activeChannels) const;

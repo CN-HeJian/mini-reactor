@@ -16,6 +16,7 @@
 #include "socket.h"
 #include "channel.h"
 #include "eventLoop.h"
+#include "socketOps.h"
 #include <memory>
 
 TcpConnection::TcpConnection(EventLoop* loop,const std::string& nameArg,int sockfd,const InetAddress& localAddr,const InetAddress& peerAddr)
@@ -29,6 +30,9 @@ TcpConnection::TcpConnection(EventLoop* loop,const std::string& nameArg,int sock
 {
     //出现了读事件
     channel_->setReadCallBack(std::bind(&TcpConnection::handleRead,this));
+    channel_->setWriteCallBack(std::bind(&TcpConnection::handleWrite,this));
+    channel_->setCloseCallBack(std::bind(&TcpConnection::handleClose,this));
+    channel_->setErrorCallBackk(std::bind(&TcpConnection::handleError,this));
 }
 
 TcpConnection::~TcpConnection(){
@@ -40,7 +44,7 @@ void TcpConnection::connectEstablished(){
     assert(state_ == kConnecting);
     setState(kConnected);
     channel_->enableReadEvent();
-
+    std::cout<<"connectEstablished: "<<std::endl;
     ConnectionCallback_(shared_from_this());
 }
 
@@ -50,10 +54,43 @@ void TcpConnection::handleRead(){
     ssize_t n = ::read(channel_->getFd(),buf,sizeof buf);
     
     if(n){
-
+        MessageCallback_(shared_from_this(),buf,n);
+    }else if(n==0){
+        handleClose();
+        //connectDestroyed();
+    }else{
+        handleError();
     }
+}
 
-    MessageCallback_(shared_from_this(),buf,n);
+void TcpConnection::handleWrite(){
+    
+}
+
+//处理关闭连接
+void TcpConnection::handleClose (){
+    loop_->assertInLoopThread();
+    std::cout<<"TcpConnecttion::handleClose state = "<<state_<<std::endl;
+    assert(state_ == kConnected);
+    channel_->disableAll();
+    CloseCallback(shared_from_this());
+}
+
+//错误事件的回调函数
+void TcpConnection::handleError(){
+    int err = socketOps::getSocketError(channel_->getFd());
+    std::cout<<"TcpConnection::handleError: "<<err;
+}
+
+//
+void TcpConnection::connectDestroyed(){
+    loop_->assertInLoopThread();
+    assert(state_ == kConnected);
+    setState(kDisconnected);
+    channel_->disableAll();
+    ConnectionCallback_(shared_from_this());
+
+    loop_->removeChannel(channel_.get());
 }
 
 //获取事件循环
@@ -89,6 +126,12 @@ void TcpConnection::setConnectionCallback(const ConnectionCallback& cb){
 //设置发送消息的回调函数
 void TcpConnection::setMessageCallback(const MessageCallback& cb){
     MessageCallback_ = cb;
+}
+
+/// Internal use only.
+void TcpConnection::setCloseCallBack(const CloseCallback& cb)
+{ 
+    closeCallback_ = cb; 
 }
 
 //设置连接状态

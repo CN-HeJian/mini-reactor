@@ -51,6 +51,8 @@ public:
 
     //往事件循环里面添加一个Channel
     void updateChannel(Channel* channel);
+    //往事件循环里面移除一个Channel 
+    void removeChannel(Channel* channel);
 
     //添加定时事件
     TimerId runAt(const Timestamp& time,const TimerCallback& cb);

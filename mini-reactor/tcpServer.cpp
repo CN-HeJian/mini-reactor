@@ -50,24 +50,26 @@ void TcpServer::newConnection(int sockfd,const InetAddress& peerAddr){
     loop_->assertInLoopThread();
 
     char buf[32];
-
     snprintf(buf,sizeof(buf),"#%d",nextConId_);
-
     ++nextConId_;
-
     std::string connName = name_ + buf;
-
-
     InetAddress localAddr(socketOps::getLocalAddr(sockfd));
 
-
     TcpConnectionPtr conn(new TcpConnection(loop_,connName,sockfd,localAddr,peerAddr));
-
     connections_[connName] = conn;
 
     conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
+    conn->setCloseCallBack(bind(&TcpServer::removeConnection,this,_1));
     conn->connectEstablished();
+}
+
+void TcpServer::removeConnection(const TcpConnectionPtr& conn)
+{
+  loop_->assertInLoopThread();
+  size_t n = connections_.erase(conn->name());
+  assert(n == 1); (void)n;
+  loop_->queueInLoop(bind(&TcpConnection::connectDestroyed, conn));
 }
 
 void TcpServer::setConnectionCallback(const ConnectionCallback &cb){

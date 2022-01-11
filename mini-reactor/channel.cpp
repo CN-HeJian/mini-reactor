@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <channel.h>
+#include "channel.h"
 #include <poll.h>
 #include <iostream>
 #include "eventLoop.h"
@@ -26,13 +26,14 @@ Channel::Channel(EventLoop* loop_,int fd_)
     fd(fd_),
     events(0),
     revents(0),
-    index(-1)
+    index(-1),
+    eventHandling_(false)
 {
 
 }
 
 Channel::~Channel(){
-
+    assert(!eventHandling_);
 }
 
 int Channel::getFd() const{
@@ -41,6 +42,11 @@ int Channel::getFd() const{
 
 int Channel::getevents() const{
     return events;
+}
+
+EventLoop* Channel::ownerLoop()
+{ 
+    return which_loop; 
 }
 
 void Channel::setRevents(int rev){
@@ -52,16 +58,25 @@ bool Channel::isNoneEvent()const{
 }
 
 void Channel::handlerEvent(){
+    eventHandling_ = true;
     std::cout<<"handler"<<std::endl;
     if (revents& POLLNVAL) {
         std::cout<< "Channel::handle_event() POLLNVAL"<<std::endl;
         //LOG_WARN << "Channel::handle_event() POLLNVAL";
     }
+
+    if ((revents & POLLHUP) ) {
+        std::cout << "Channel::handle_event() POLLHUP"<<std::endl;
+        if (close_Callback) 
+            close_Callback();
+    }
+
     if (revents & (POLLERR | POLLNVAL)) {
         if (error_Callback) 
             error_Callback();
     }
     if (revents & (POLLIN | POLLPRI | POLLRDHUP)) {
+        std::cout << "Channel::handle_event() OLLIN | POLLPRI | POLLRDHUP"<<std::endl;
         if (read_Callback) 
             read_Callback();
     }
@@ -69,6 +84,7 @@ void Channel::handlerEvent(){
         if (write_Callback) 
             write_Callback();
     }
+    eventHandling_ = false;
 }
 
 void Channel::setReadCallBack(const callBack& cb){
@@ -77,6 +93,10 @@ void Channel::setReadCallBack(const callBack& cb){
 
 void  Channel::setWriteCallBack(const callBack& cb){
     write_Callback = cb;
+}
+
+void Channel::setCloseCallBack(const callBack& cb){
+    close_Callback = cb;
 }
 
 void Channel::setErrorCallBackk(const callBack& cb){

@@ -26,8 +26,8 @@ def main():
     tcp_input = "send to you"
     tcp_socket.send(tcp_input.encode('gbk'))  # utf-8 中文会乱码
 
-    data = tcp_socket.recv(1024)
-    print(data)
+    #data = tcp_socket.recv(1024)
+    #print(data)
 
     # 4.关闭套接字
     tcp_socket.close()

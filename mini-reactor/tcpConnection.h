@@ -49,18 +49,31 @@ public:
     void setConnectionCallback(const ConnectionCallback& cb);
     //设置发送消息的回调函数
     void setMessageCallback(const MessageCallback& cb);
+    //设置关闭连接的回调
+    void setCloseCallBack(const CloseCallback& cb);
+
     //连接建立
     void connectEstablished();  //仅仅能被调用一次
+    //
+    void connectDestroyed();
 
 private:
     enum StateE{
         kConnecting,
         kConnected,
+        kDisconnected,
     };
 
     void setState(StateE s);
     //接受数据
     void handleRead();
+
+    void handleWrite();
+
+    void handleClose();
+
+    void handleError();
+
 
     EventLoop* loop_;
     std::string name_;
@@ -74,6 +87,7 @@ private:
 
     ConnectionCallback ConnectionCallback_;
     MessageCallback MessageCallback_;
+    CloseCallback closeCallback_;
 };
 
 
