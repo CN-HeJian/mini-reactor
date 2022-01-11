@@ -12,6 +12,7 @@
 #include "socket.h"
 #include "socketOps.h"
 #include "accept.h"
+#include "tcpServer.h"
 
 using namespace std;
 
@@ -30,6 +31,28 @@ void newConnection(int sockfd,const InetAddress& peerAddr){
     socketOps::close(sockfd);
 }
 
+void onConnection(const TcpConnectionPtr& conn)
+{
+  if (conn->connected())
+  {
+    printf("onConnection(): new connection [%s] from %s\n",
+           conn->name().c_str(),
+           conn->localAddress().toHostPort().c_str());
+  }
+  else
+  {
+    printf("onConnection(): connection [%s] is down\n",
+           conn->name().c_str());
+  }
+}
+
+void onMessage(const  TcpConnectionPtr& conn,
+               const char* data,
+               ssize_t len)
+{
+  printf("onMessage(): received %zd bytes from connection [%s]\n",
+         len, data);
+}
 
 int main(){
     // printf("main() pid = %d, tid = %ld\n",getpid(),syscall(SYS_gettid));
@@ -51,14 +74,23 @@ int main(){
     printf("main(): pid = %ld\n",syscall(SYS_gettid));
 
     InetAddress listenAddr(9981);
-
+ 
     EventLoop loop;
 
-    Acceptor accept(&loop,listenAddr);
 
-    accept.setNewConnectionCallBack(newConnection);
+    TcpServer server(&loop,listenAddr);
 
-    accept.listen();
+    server.setConnectionCallback(onConnection);
+    server.setMessageCallback(onMessage);
+    server.start();
+
+
+
+    //Acceptor accept(&loop,listenAddr);
+
+    //accept.setNewConnectionCallBack(newConnection);
+
+    //accept.listen();
 
     loop.loop();
 }   

@@ -19,9 +19,11 @@ class InetAddress;
 
 class Socket{
 public:
+    //限制只有一个没有默认值的成员参数的构造
     explicit Socket(int sockfd);
     ~Socket();
 
+    //获取文件描述符号
     int getfd()const;
 
     //给socket绑定端口号和地址
@@ -30,12 +32,15 @@ public:
     //监听
     void listen();
 
+    //接受连接
     int accept(InetAddress* peeraddr);
 
+    //对这个连接做额外的设置
     void setReuseAddr(bool on);
 
 private:
 
+    //连接的文件描述符号
     const int sockfd_;
 };
 

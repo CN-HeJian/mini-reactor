@@ -27,17 +27,20 @@ Socket::~Socket(){
 
 }
 
+//返回文件描述符
 int Socket::getfd()const{
     return sockfd_;
 }
 
 //绑定端口
 void Socket::bindAddress(const InetAddress& addr){
+    //将文件描述符号与端口绑定
     socketOps::bindOrDie(sockfd_,addr.getSockAddrInet());
 }
 
 //监听端口
 void Socket::listen(){
+    //
     socketOps::listenOrDie(sockfd_);
 }
 

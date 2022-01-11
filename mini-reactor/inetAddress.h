@@ -18,6 +18,7 @@
 #include <string>
 #include <netinet/in.h>
 
+//用于封装网络地址的类
 class InetAddress{
 public:
     //三种不同的构造函数
@@ -25,13 +26,15 @@ public:
     InetAddress(const std::string &ip,uint16_t port);
     InetAddress(const struct sockaddr_in& addr);
 
+    //将网络地址转换为主机地址
     std::string toHostPort()const;
-
+    //获取主机地址、常量引用！！！
     const struct sockaddr_in& getSockAddrInet() const ;
-
+    //更改网络地址
     void setSockAddrInet(const struct sockaddr_in& addr);
 
 private:
+    //网络地址
     struct sockaddr_in addr_;
 };
 

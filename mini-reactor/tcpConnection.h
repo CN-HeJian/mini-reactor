@@ -23,31 +23,34 @@ class Channel;
 #include <iostream>
 #include <memory>
 
-
 #include "inetAddress.h"
 #include "callback.h"
 
-
-class TcpConnection{
-
+class TcpConnection : public std::enable_shared_from_this<TcpConnection>{
 public: 
     typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
-    // 999
+    // Tcp连接
     TcpConnection(EventLoop* loop,const std::string &name,int sockfd,const InetAddress& localAddr,const InetAddress &peerAddr);
     ~TcpConnection();
 
+    //获取事件循环
     EventLoop* getLoop() const ;
+    //获取连接的名字
     const std::string& name() const;
+    //
     const InetAddress& localAddress();
+    //
     const InetAddress& peerAddress();
+    //获取连接状态
     bool connected() const ;
 
+    //设置连接的回调函数
     void setConnectionCallback(const ConnectionCallback& cb);
-
+    //设置发送消息的回调函数
     void setMessageCallback(const MessageCallback& cb);
-    
-    void connectEstablished();
+    //连接建立
+    void connectEstablished();  //仅仅能被调用一次
 
 private:
     enum StateE{
@@ -56,6 +59,7 @@ private:
     };
 
     void setState(StateE s);
+    //接受数据
     void handleRead();
 
     EventLoop* loop_;

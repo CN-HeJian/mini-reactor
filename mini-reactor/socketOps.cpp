@@ -22,54 +22,58 @@
 #include <unistd.h>
 #include <iostream>
 
-typedef struct sockaddr SA;
+// uint64_t socketOps::hostToNetwork64(uint64_t host64)
+// {
+//     return htobe64(host64);
+// }
+
+// uint32_t socketOps::hostToNetwork32(uint32_t host32)
+// {
+//     return htonl(host32);
+// }
+
+// uint16_t socketOps::hostToNetwork16(uint16_t host16)
+// {
+//     return htons(host16);
+// }
+
+// uint64_t socketOps::networkToHost64(uint64_t net64)
+// {
+//     return be64toh(net64);
+// }
+
+// uint32_t socketOps::networkToHost32(uint32_t net32)
+// {
+//     return ntohl(net32);
+// }
+
+// uint16_t socketOps::networkToHost16(uint16_t net16)
+// {
+//     return ntohs(net16);
+// }
 
 template<typename To, typename From>
 inline To implicit_cast(From const &f) {
     return f;
 }
 
-// inline uint64_t socketOps::hostToNetwork64(uint64_t hsot64){
-//     return htobe64(hsot64);
-// }
-
-// inline uint32_t socketOps::hostToNetwork32(uint32_t host32){
-//     return htonl(host32);
-// }
-
-// inline uint16_t socketOps::hostToNetwork16(uint16_t host16){
-//     return htons(host16);
-// }
-
-// inline uint64_t socketOps::netWorkToHost64(uint64_t net64){
-//     return be64toh(net64);
-// }
-
-// inline uint32_t socketOps::netWorkToHost32(uint32_t net32){
-//     return ntohl(net32);
-// }
-
-// inline uint16_t socketOps::networkToHost16(uint16_t net16){
-//     return ntohs(net16);
-// }
-
-const SA* sockaddr_cast(const struct sockaddr_in*addr){
-    return static_cast<const SA*>(implicit_cast<const void*>(addr));
+const sockaddr* sockaddr_cast(const struct sockaddr_in*addr){
+    return static_cast<const sockaddr*>(implicit_cast<const void*>(addr));
 }
 
-SA* sockaddr_cast(struct sockaddr_in* addr){
-    return static_cast<SA*>(implicit_cast<void*>(addr));
+sockaddr* sockaddr_cast(struct sockaddr_in* addr){
+    return static_cast<sockaddr*>(implicit_cast<void*>(addr));
 }
 
 void setNonBlockAndCloseOnExec(int sockfd){
+    //设置O_NONBLOCK
     int flags = ::fcntl(sockfd,F_GETFL,0);
     flags |= O_NONBLOCK;
     int ret = ::fcntl(sockfd,F_SETFL,flags);
-
     if(ret){
 
     }
-
+    //设置FD_CLOEXEC
     flags = ::fcntl(sockfd,F_GETFD,0);
     flags |= FD_CLOEXEC;
     ret =::fcntl(sockfd,F_SETFD,flags);
@@ -77,6 +81,7 @@ void setNonBlockAndCloseOnExec(int sockfd){
 
 //创建一个套接字
 int socketOps::createNonblockingOrDie (){
+    //字节流、非阻塞、exe开启一个新的进程会关闭刚才创建的文件描述符
     int sockfd = ::socket(AF_INET,SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC,IPPROTO_TCP);
     if(sockfd<0){
         std::cout<<"create NonBlockingOrDie failed"<<std::endl;
@@ -84,9 +89,13 @@ int socketOps::createNonblockingOrDie (){
     return sockfd;
 }
 
-//绑定一个socket
+//绑定一个套接字，通常为套接字命名
 void socketOps::bindOrDie (int sockfd,const struct sockaddr_in& addr){
+    //通常是使用sockaddr_in,然后强转为sockaddr,这两个结构体的大小是一样的，所以可以直接强转，均为16个字节
     int ret = ::bind(sockfd,sockaddr_cast(&addr),sizeof(addr));
+    //失败的原因一般有两种:
+    //1)一种是被绑定的地址是锁定的、仅超级权限可以使用
+    //2)当前地址正在使用
     if(ret<0){
         std::cout<<"socket::bindOrDie"<<std::endl;
     }
@@ -94,7 +103,7 @@ void socketOps::bindOrDie (int sockfd,const struct sockaddr_in& addr){
 
 //监听
 void socketOps::listenOrDie(int sockfd){
-    //SOMAXCONN 等待队列的最大长度
+    //SOMAXCONN  4096  等待队列的最大长度
     //listen 主要作用是将套接字变成被动的连接监听套接字，listen函数不会阻塞
     int ret = ::listen(sockfd,SOMAXCONN);
     if(ret<0){
@@ -145,13 +154,15 @@ int socketOps::accpet (int sockfd,struct sockaddr_in* addr){
 
 //关闭套接字
 void socketOps::close(int sockfd){
+    //close关闭连接的原理是将fd的引用计数减1，只有当fd的引用计数为0时连接才会真正的关闭
+    //shutdown(sockfd,flag) 直接关闭
     if(::close(sockfd)){
         std::cout<<"close failed"<<std::endl;
     }
 }
 
 //网络地址变成主机地址
-//des: buf
+//rec addr   des: buf
 void socketOps::toHostPort (char *buf,size_t size,const struct sockaddr_in&addr){
     char host[INET_ADDRSTRLEN] = "INVALID";
 
@@ -164,20 +175,19 @@ void socketOps::toHostPort (char *buf,size_t size,const struct sockaddr_in&addr)
 }
 
 //转为网络地址
-//des: addr
+//rec: ip  des: addr
 void socketOps::fromHostPort(const char*ip,uint16_t port,struct sockaddr_in* addr){
     addr->sin_family = AF_INET;
     //port: 主机端口号转为网络端口号
     addr->sin_port = hostToNetwork16(port);
-    //ip: 主机地址转为网络地址
+    //ip: 主机地址转为网络地址  p refer presentation, n refer numeric
     if (::inet_pton(AF_INET, ip, &addr->sin_addr) <= 0)
     {
         std::cout<<"sockets::fromHostPort failed"<<std::endl;
-        //LOG_SYSERR << "sockets::fromHostPort";
     }
 }
 
-
+//获取套接字的连接信息
 struct sockaddr_in socketOps::getLocalAddr(int sockfd)
 {
   struct sockaddr_in localaddr;
@@ -190,6 +200,3 @@ struct sockaddr_in socketOps::getLocalAddr(int sockfd)
   }
   return localaddr;
 }
-
-
-

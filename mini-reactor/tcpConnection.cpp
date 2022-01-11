@@ -16,6 +16,7 @@
 #include "socket.h"
 #include "channel.h"
 #include "eventLoop.h"
+#include <memory>
 
 TcpConnection::TcpConnection(EventLoop* loop,const std::string& nameArg,int sockfd,const InetAddress& localAddr,const InetAddress& peerAddr)
    :loop_(loop),
@@ -26,6 +27,7 @@ TcpConnection::TcpConnection(EventLoop* loop,const std::string& nameArg,int sock
     localAddr_(localAddr),
     peerAddr_(peerAddr)
 {
+    //出现了读事件
     channel_->setReadCallBack(std::bind(&TcpConnection::handleRead,this));
 }
 
@@ -39,9 +41,10 @@ void TcpConnection::connectEstablished(){
     setState(kConnected);
     channel_->enableReadEvent();
 
-    //ConnectionCallback_(shared_from_this());
+    ConnectionCallback_(shared_from_this());
 }
 
+//读事件...
 void TcpConnection::handleRead(){
     char buf[65536];
     ssize_t n = ::read(channel_->getFd(),buf,sizeof buf);
@@ -50,37 +53,45 @@ void TcpConnection::handleRead(){
 
     }
 
-    //MessageCallback_(shared_from_this(),buf,n);
+    MessageCallback_(shared_from_this(),buf,n);
 }
 
+//获取事件循环
 EventLoop* TcpConnection::getLoop() const {
     return loop_;
 }
 
+//获取连接名
 const std::string& TcpConnection::name() const{
     return name_;
 }
 
+//获取连接地址
 const InetAddress& TcpConnection::localAddress(){
     return localAddr_;
 }
 
+//获取
 const InetAddress& TcpConnection::peerAddress(){
     return peerAddr_;
 }
 
+//获取连接状态
 bool TcpConnection::connected() const {
     return state_ == kConnected;
 }
 
+//设置连接的回调函数
 void TcpConnection::setConnectionCallback(const ConnectionCallback& cb){
     ConnectionCallback_= cb;
 }
 
+//设置发送消息的回调函数
 void TcpConnection::setMessageCallback(const MessageCallback& cb){
     MessageCallback_ = cb;
 }
 
+//设置连接状态
 void TcpConnection::setState(StateE s){
     state_ = s;
 }

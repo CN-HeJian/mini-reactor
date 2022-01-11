@@ -44,10 +44,11 @@ private:
 
     void newConnection(int sockfd,const InetAddress& peerAddr);
 
-    typedef std::map<std::string,TcpConnection> connectionMap;
+    typedef std::map<std::string,TcpConnectionPtr> connectionMap;
 
     EventLoop* loop_;
     const std::string name_;
+    //std::auto_ptr<Acceptor> acceptor_;
     //std::unique_ptr<Acceptor>  acceptor_;
     Acceptor* acceptor_;
 

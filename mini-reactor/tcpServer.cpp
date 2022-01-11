@@ -61,12 +61,19 @@ void TcpServer::newConnection(int sockfd,const InetAddress& peerAddr){
     InetAddress localAddr(socketOps::getLocalAddr(sockfd));
 
 
-    //TcpConnection* conn(new TcpConnection(loop_,connName,sockfd,localAddr,peerAddr));
+    TcpConnectionPtr conn(new TcpConnection(loop_,connName,sockfd,localAddr,peerAddr));
 
-    //connections_[connName] = conn;
+    connections_[connName] = conn;
 
-    //conn->setConnectionCallback(connectionCallback_);
-    //conn->setMessageCallback(messageCallback_);
-    //conn->connectEstablished();
+    conn->setConnectionCallback(connectionCallback_);
+    conn->setMessageCallback(messageCallback_);
+    conn->connectEstablished();
 }
 
+void TcpServer::setConnectionCallback(const ConnectionCallback &cb){
+    connectionCallback_ = cb;
+}
+
+void TcpServer::setMessageCallback(const MessageCallback &cb){
+    messageCallback_ = cb;
+}
