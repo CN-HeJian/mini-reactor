@@ -88,10 +88,7 @@ private:
     ConnectionCallback ConnectionCallback_;
     MessageCallback MessageCallback_;
     CloseCallback closeCallback_;
+
 };
-
-
-
-
 
 #endif
